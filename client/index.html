@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html >
+<head>
+  <title>Bingo Game</title>
+  <script src="/socket.io/socket.io.js" defer></script>
+  <link rel="stylesheet" href="style.css">
+  <title>Bingo</title>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <h1>🎲 Bingo Game</h1>
+  
+  <button onclick="createRoom()">Create Room</button>
+  <input id="roomIdInput" placeholder="Room ID">
+  <button onclick="joinRoom()">Join Room</button>
+  
+  <div id="game"></div>
+  
+  <button onclick="drawNumber()">Draw Number</button>
+  <div id="numbers"></div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>

@@ -1,24 +1,95 @@
 <!DOCTYPE html>
-<html >
+<html>
 <head>
   <title>Bingo Game</title>
-  <script src="/socket.io/socket.io.js" defer></script>
-  <link rel="stylesheet" href="style.css">
-  <title>Bingo</title>
   <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-  <h1>🎲 Bingo Game</h1>
-  
-  <button onclick="createRoom()">Create Room</button>
-  <input id="roomIdInput" placeholder="Room ID">
-  <button onclick="joinRoom()">Join Room</button>
-  
-  <div id="game"></div>
-  
-  <button onclick="drawNumber()">Draw Number</button>
-  <div id="numbers"></div>
+  <h2>Multiplayer Bingo 🎲</h2>
 
-  <script src="script.js" defer></script>
+  <div>
+    <label>Name: </label>
+    <input type="text" id="nameInput" />
+    <button onclick="joinGame()">Join Game</button>
+  </div>
+
+  <h3 id="turnInfo">Waiting for players...</h3>
+  <button id="drawBtn" onclick="drawNumber()" disabled>Draw Number</button>
+
+  <h3>Last Number: <span id="lastNumber">-</span></h3>
+  <div id="board"></div>
+
+  <button onclick="claimBingo()">Claim BINGO!</button>
+
+  <h2 id="winner"></h2>
+
+  <script>
+    const socket = io();
+    let myName = "";
+    let myTurn = false;
+
+    // Generate Bingo Board
+    let board = [];
+    for (let i = 1; i <= 25; i++) {
+      board.push(i);
+    }
+    function renderBoard() {
+      const div = document.getElementById("board");
+      div.innerHTML = "";
+      board.forEach((num, idx) => {
+        const cell = document.createElement("span");
+        cell.innerText = num;
+        cell.style.padding = "10px";
+        cell.style.margin = "5px";
+        cell.style.border = "1px solid black";
+        cell.id = "cell-" + num;
+        div.appendChild(cell);
+      });
+    }
+    renderBoard();
+
+    function joinGame() {
+      myName = document.getElementById("nameInput").value || "Player";
+      socket.emit("joinGame", myName);
+    }
+
+    function drawNumber() {
+      if (myTurn) {
+        socket.emit("drawNumber");
+      }
+    }
+
+    function claimBingo() {
+      socket.emit("bingo", myName);
+    }
+
+    // Receive number
+    socket.on("numberDrawn", (number) => {
+      document.getElementById("lastNumber").innerText = number;
+      let cell = document.getElementById("cell-" + number);
+      if (cell) {
+        cell.style.backgroundColor = "yellow";
+      }
+    });
+
+    // Turn handling
+    socket.on("turnChanged", (playerId) => {
+      if (socket.id === playerId) {
+        myTurn = true;
+        document.getElementById("turnInfo").innerText = "Your turn!";
+        document.getElementById("drawBtn").disabled = false;
+      } else {
+        myTurn = false;
+        document.getElementById("turnInfo").innerText = "Waiting for opponent...";
+        document.getElementById("drawBtn").disabled = true;
+      }
+    });
+
+    // Game over
+    socket.on("gameOver", (msg) => {
+      document.getElementById("winner").innerText = msg;
+      document.getElementById("drawBtn").disabled = true;
+    });
+  </script>
 </body>
 </html>
